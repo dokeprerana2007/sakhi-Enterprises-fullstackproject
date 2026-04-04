@@ -45,8 +45,8 @@ let products = [
     type:'Corrugated Fiberboard',
     price:150,
     images:[
-      'kraft box.jpg',
-      'Kraft Carton Shipping Boxes.jpg',
+      'kraft-box.jpg',
+      'Kraft-Carton-Shipping-Boxes.jpg',
       'Kraft Carton Shipping Boxes4.jpg',
       'Kraft Carton Shipping Boxes3.jpg',
       'Kraft Carton Shipping Boxes2.jpg',
@@ -348,8 +348,8 @@ let products = [
     type:'Plastic / Poly',
     price:28,
     images:[
-      'Stand-Up Zip-Lock Pouches1.jpg',
-      'Stand-Up Zip-Lock Pouches2.jpg',
+      'Stand-Up-Zip-Lock-Pouches1.jpg',
+      'Stand-Up-Zip-Lock-Pouches2.jpg',
       'Stand-Up Zip-Lock Pouches (Food Grade)2.jpg',
       'Stand-Up Zip-Lock Pouches (Food Grade)3.jpg',
       'Stand-Up Zip-Lock Pouches (Food Grade)4.jpg',

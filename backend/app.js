@@ -32,18 +32,23 @@ app.use((req, res, next) => {
 });
 
 // Static folders with cache control
+// Serve everything in public (includes CSS, JS, images, and /product)
 app.use(express.static(path.join(process.cwd(), "public"), {
-  maxAge: '1d', // Cache for 1 day
-  etag: false, // Disable ETags to reduce 304 responses
-  lastModified: false // Disable last-modified headers
-}));
-app.use("/assets", express.static(path.join(process.cwd(), "assets"), {
-  maxAge: '7d', // Cache assets for 7 days
+  maxAge: '1d',
   etag: false,
   lastModified: false
 }));
-app.use("/product", express.static(path.join(process.cwd(), "product"), {
-  maxAge: '1d', // Cache product files for 1 day
+
+// Optional: assets folder
+app.use("/assets", express.static(path.join(process.cwd(), "assets"), {
+  maxAge: '7d',
+  etag: false,
+  lastModified: false
+}));
+
+// Optional: explicit product folder route
+app.use("/product", express.static(path.join(process.cwd(), "public", "product"), {
+  maxAge: '1d',
   etag: false,
   lastModified: false
 }));
