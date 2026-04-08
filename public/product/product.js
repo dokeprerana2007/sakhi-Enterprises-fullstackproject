@@ -39,7 +39,23 @@ let products = [
       customDesign: { label: 'Full Color Digital Print (Pre-Printed Mailers)', modifier: 30 }
     }
   },
-  
+  {
+    name:'Kraft Carton Shipping Boxes (3/5 Ply)',
+    category:'Corrugated & Paperboard Boxes',
+    type:'Corrugated Fiberboard',
+    price:150,
+    images:[
+      'kraftbox.jpg',
+      'Kraft-Carton-Shipping-Boxes.jpg',
+      'Kraft Carton Shipping Boxes4.jpg',
+      'Kraft Carton Shipping Boxes3.jpg',
+      'Kraft Carton Shipping Boxes2.jpg',
+      'Kraft Carton Shipping Boxes5.jpg'
+    ],
+    desc:'Standard brown corrugated cartons for shipping and storage.',
+    baseConfig: [{name:'3 Ply (Standard Duty)',price:150},{name:'5 Ply (Medium Duty)',price:210}],
+    customSurcharges:{ customColor:{label:'Add 1-Color Logo Printing',modifier:25} }
+  },
   {
     name:'Bubble Mailers / Padded E-commerce Envelopes',
     category:'Pouches & Mailers',
@@ -326,7 +342,29 @@ let products = [
       tamperEvident: { label: 'Extra Tamper-Evident Seal', modifier: 1 }
     }
   },
-  
+  {
+    name:'Stand-Up Zip-Lock Pouches (Food Grade)',
+    category:'Pouches & Mailers',
+    type:'Plastic / Poly',
+    price:28,
+    images:[
+      'foodPouches.jpg',
+      'Sfoodpacket2.jpg',
+      'Stand-Up Zip-Lock Pouches (Food Grade)2.jpg',
+      'Stand-Up Zip-Lock Pouches (Food Grade)3.jpg',
+      'Stand-Up Zip-Lock Pouches (Food Grade)4.jpg',
+      'Stand-Up Zip-Lock Pouches (Food Grade)5.jpg'
+    ],
+    desc:'Re-sealable, moisture-proof pouches ideal for coffee, nuts, snacks, and powdered food items.',
+    baseConfig: [
+      { name: '100g size (Clear)', price: 28 },
+      { name: '250g size (Foil Lined)', price: 45 }
+    ],
+    customSurcharges: {
+      tearNotch: { label: 'Add Easy-Open Tear Notch', modifier: 3 },
+      hangHole: { label: 'Add Euro/Round Hang Hole', modifier: 3 }
+    }
+  },
   {
     name:'Kraft Paper Carry Bags (Recyclable)',
     category:'Bags & Envelopes',
