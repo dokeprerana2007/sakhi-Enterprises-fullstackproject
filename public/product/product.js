@@ -722,7 +722,6 @@ let currentProduct = null;
 let currentImages = [];
 let currentIndex = 0;
 let activeCategory = 'all'; // Initial filter state
-let activeType = 'all'; // Initial filter state
 const cart = []; // Cart array to store items
 
 /* ---------- Utilities ---------- */
@@ -736,14 +735,12 @@ function escapeHtml(text){
 function buildFilters(){
   // derive categories and types from available products
   const categoriesSet = new Set();
-  const typesSet = new Set();
   products.forEach(p=>{
     if(p.category) categoriesSet.add(p.category);
-    if(p.type) typesSet.add(p.type);
   });
 
   const categories = Array.from(categoriesSet).sort();
-  const types = Array.from(typesSet).sort();
+ 
 
   // Category Filter Setup
   categorySelect.innerHTML = '';
@@ -762,22 +759,7 @@ function buildFilters(){
     filterAndRender();
   });
 
-  // Type Filter Setup
-  typeSelect.innerHTML = '';
-  const typeAll = document.createElement('option');
-  typeAll.value = 'all';
-  typeAll.textContent = 'All Material Types';
-  typeSelect.appendChild(typeAll);
-  types.forEach(t=>{
-    const opt = document.createElement('option');
-    opt.value = t;
-    opt.textContent = t;
-    typeSelect.appendChild(opt);
-  });
-  typeSelect.addEventListener('change', (e)=>{
-    activeType = e.target.value;
-    filterAndRender();
-  });
+  
 }
 
 /* ---------- Server product loader & mapping ---------- */
@@ -872,10 +854,6 @@ function filterAndRender(){
   const filtered = products.filter(p=>{
     // Filter by Category
     const inCat = activeCategory==='all' ? true : p.category===activeCategory;
-
-    // Filter by Material Type
-    const inType = activeType==='all' ? true : p.type===activeType;
-
     // Filter by Search Query
     const inSearch = !q || 
       p.name.toLowerCase().includes(q) || 

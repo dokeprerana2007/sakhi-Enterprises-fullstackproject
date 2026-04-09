@@ -35,6 +35,29 @@ header{
   border:1px solid var(--border);
   border-radius:10px;
   padding:25px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+h2{margin-top:0;color:var(--green);}
+.address-box{
+  background:var(--light);
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:10px;
+  line-height:1.6;
+}
+.summary-item{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:15px;
+  align-items:center;
+  margin-bottom:15px;
+}
+.summary-total{
+  display:flex;
+  justify-content:space-between;
+  font-size:20px;
+  font-weight:800;
+  margin-top:20px;
 }
 .btn{
   margin-top:20px;
@@ -45,23 +68,15 @@ header{
   background:var(--green);
   color:#fff;
   font-weight:700;
+  font-size:16px;
   cursor:pointer;
 }
+.btn:hover{background:#1b5e20;}
 .change-btn{
   background:#fff;
   color:var(--green);
   border:2px solid var(--green);
-}
-.summary-item{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:10px;
-}
-.summary-total{
-  display:flex;
-  justify-content:space-between;
-  font-size:20px;
-  font-weight:bold;
+  margin-bottom:20px;
 }
 </style>
 </head>
@@ -74,10 +89,19 @@ header{
   <div class="card">
 
     <h2>Delivery Address</h2>
-    <div id="address-box">Loading...</div>
+    <div id="address-box" class="address-box">
+      Loading address...
+    </div>
 
-    <button class="btn change-btn" onclick="changeAddress()">Change Address</button>
-    <button class="btn change-btn" onclick="goToShop()">Add More Products</button>
+    <button class="btn change-btn" onclick="changeAddress()">
+      Change Address
+    </button>
+
+    <hr>
+
+    <button class="btn change-btn" onclick="goToShop()">
+      ➕ Add More Products
+    </button>
 
     <h2>Order Summary</h2>
     <div id="summary-items"></div>
@@ -87,7 +111,9 @@ header{
       <span id="summary-total">₹0</span>
     </div>
 
-    <button id="payBtn" class="btn">Pay ₹0</button>
+    <button id="payBtn" class="btn">
+      Pay ₹0
+    </button>
 
   </div>
 </div>
@@ -95,147 +121,337 @@ header{
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
+
 const RAZORPAY_KEY = "rzp_test_S8l9sAf2Mc1cyv";
-const BACKEND = window.location.origin;
+const BACKEND = "http://localhost:3000";
 
 let checkoutData = {};
-let currentItemId = null; // 🔥 STORE ITEM ID
 
-// ================= LOAD CHECKOUT =================
+/* ================= LOAD CHECKOUT ================= */
+
 async function loadCheckout() {
 
+
+    // ✅ SINGLE ITEM CHECKOUT FROM CART
   const params = new URLSearchParams(window.location.search);
   const itemId = params.get("itemId");
-  currentItemId = itemId; // store globally
 
-  // ===== SINGLE PRODUCT =====
   if (itemId) {
-    const res = await fetch(`${BACKEND}/cart/${itemId}`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
+    try {
+      const res = await fetch(`${BACKEND}/cart/${itemId}`, {
+        credentials: "include"
+      });
+
+      if (!res.ok) {
+        alert("Item not found");
+        return;
       }
-    });
 
-    const item = await res.json();
+      const item = await res.json();
 
-    checkoutData.items = [item];
-    checkoutData.total = item.price * item.quantity;
+      checkoutData.items = [item];
+      checkoutData.total = item.price * item.quantity;
 
-    document.getElementById("summary-items").innerHTML = `
-      <div class="summary-item">
-        <span>${item.name} (x${item.quantity})</span>
-        <span>₹${item.price * item.quantity}</span>
-      </div>
-    `;
+      document.getElementById("summary-items").innerHTML = `
+        <div class="summary-item">
+          <div>
+            <strong>${item.name}</strong><br>
+            Qty: ${item.quantity}
+          </div>
+          <strong>₹${item.price * item.quantity}</strong>
+        </div>
+      `;
 
-  } 
-  // ===== FULL CART =====
-  else {
-    const res = await fetch(`${BACKEND}/cart`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    });
+      document.getElementById("summary-total").textContent =
+        "₹" + checkoutData.total;
 
-    const data = await res.json();
+      document.getElementById("payBtn").textContent =
+        "Pay ₹" + checkoutData.total;
+
+      await loadAddress();
+      return;   // 🚨 VERY IMPORTANT
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load item");
+      return;
+    }
+  }
+
+  const directOrder = sessionStorage.getItem("directOrder");
+
+  // ✅ FIX START (merge instead of replace)
+  if (directOrder) {
+
+    const item = JSON.parse(directOrder);
+
+    let existingOrders = JSON.parse(sessionStorage.getItem("directOrders")) || [];
+
+    existingOrders.push(item);
+
+    sessionStorage.setItem("directOrders", JSON.stringify(existingOrders));
+    sessionStorage.removeItem("directOrder");
+  }
+
+  const allDirectOrders = JSON.parse(sessionStorage.getItem("directOrders")) || [];
+
+  if (allDirectOrders.length > 0) {
+
+    checkoutData.items = allDirectOrders;
 
     let total = 0;
     let html = "";
 
-    data.forEach(item => {
+    allDirectOrders.forEach(item => {
+
       total += item.price * item.quantity;
+
       html += `
         <div class="summary-item">
-          <span>${item.name} (x${item.quantity})</span>
-          <span>₹${item.price * item.quantity}</span>
+          <div>
+            <strong>${item.name}</strong><br>
+            Qty: ${item.quantity}
+          </div>
+          <strong>₹${item.price * item.quantity}</strong>
         </div>
       `;
     });
 
-    checkoutData.items = data;
     checkoutData.total = total;
 
     document.getElementById("summary-items").innerHTML = html;
+    document.getElementById("summary-total").textContent = "₹" + total;
+    document.getElementById("payBtn").textContent = "Pay ₹" + total;
+
+    await loadAddress();
+    return;
   }
+  // ✅ FIX END
 
-  document.getElementById("summary-total").textContent = "₹" + checkoutData.total;
-  document.getElementById("payBtn").textContent = "Pay ₹" + checkoutData.total;
 
-  await loadAddress();
+  // ================= CART (UNCHANGED) =================
+
+  try {
+
+    const res = await fetch(`${BACKEND}/cart`, {
+  credentials: "include"
+});
+    if (!res.ok) {
+      alert("Please login again");
+      return;
+    }
+
+    const data = await res.json();
+
+    checkoutData = data;
+
+    let html = "";
+    let total = 0;
+
+    if (!data || data.length === 0) {
+
+      html = "<p>Your cart is empty.</p>";
+
+    } else {
+
+      data.forEach(item => {
+
+        total += item.price * item.quantity;
+
+        html += `
+          <div class="summary-item">
+            <div>
+             <strong>${item.name}</strong>
+              Qty: ${item.quantity}
+            </div>
+            <strong>₹${item.price * item.quantity}</strong>
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById("summary-items").innerHTML = html;
+    document.getElementById("summary-total").textContent = "₹" + total;
+    document.getElementById("payBtn").textContent = "Pay ₹" + total;
+
+    checkoutData.total = total;
+    checkoutData.items = data;
+
+await loadAddress();
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load checkout");
+  }
 }
 
-// ================= ADDRESS =================
+/* ================= LOAD ADDRESS ================= */
+
 async function loadAddress() {
   const res = await fetch(`${BACKEND}/api/profile/profiledata`, {
-    headers: {
-      Authorization: "Bearer " + localStorage.getItem("token")
-    }
+    credentials: "include"
   });
-
   const data = await res.json();
   checkoutData.address = data.address;
-
-  document.getElementById("address-box").innerHTML = data.address
-    ? `${data.username}<br>${data.address.street}, ${data.address.city}`
-    : "No address found";
+  renderAddress(data);
 }
 
-document.addEventListener("DOMContentLoaded", loadCheckout);
+function renderAddress(data){
 
-// ================= PAYMENT =================
-document.getElementById("payBtn").addEventListener("click", async () => {
-
-  if (!checkoutData.total) return alert("Cart empty");
-
-  const orderRes = await fetch(`${BACKEND}/api/payment/create-order`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + localStorage.getItem("token")
-    },
-    body: JSON.stringify({ amount: checkoutData.total })
-  });
-
-  const order = await orderRes.json();
-
-  const rzp = new Razorpay({
-    key: RAZORPAY_KEY,
-    amount: order.amount,
-    order_id: order.id,
-    handler: async function (response) {
-
-      await fetch(`${BACKEND}/order/place`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: checkoutData.items,
-          address: checkoutData.address
-        })
-      });
-
-      alert("Order Placed!");
-      window.location.href = "success.html";
-    }
-  });
-
-  rzp.open();
-});
-
-// ================= NAVIGATION =================
-
-// 🔥 FIXED FUNCTION
-function goToShop() {
-  if (currentItemId) {
-    // preserve single product flow
-    window.location.href = `product.html?itemId=${currentItemId}`;
+  if (!data.address) {
+    document.getElementById("address-box").innerHTML = `
+      <strong>No address found</strong><br>
+      Please add address in profile
+    `;
   } else {
-    // normal cart flow
-    window.location.href = "product.html";
+
+    const addr = data.address;
+
+    document.getElementById("address-box").innerHTML = `
+      <strong>${data.username}</strong><br>
+      ${addr.fullName}<br>
+      ${addr.street}, ${addr.city}<br>
+      ${addr.state} - ${addr.pincode}<br>
+      ${addr.country}<br>
+      Phone: ${data.phone}
+    `;
   }
 }
 
+loadCheckout();
+
+/* ================= PAYMENT (UNCHANGED) ================= */
+
+document.getElementById("payBtn").addEventListener("click", async () => {
+
+  if (!checkoutData.total || checkoutData.total <= 0) {
+    alert("Cart is empty");
+    return;
+  }
+
+  if (!checkoutData.address) {
+    alert("Please add delivery address first");
+    window.location.href = "/profile.html";
+    return;
+  }
+
+  try {
+
+    const orderRes = await fetch(`${BACKEND}/api/payment/create-order`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify({
+        amount: checkoutData.total
+      })
+    });
+
+    const order = await orderRes.json();
+
+    if (!order.id) {
+      alert("Order creation failed");
+      return;
+    }
+
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: order.amount,
+      currency: "INR",
+      name: "Sakhi Enterprises",
+      description: "Order Payment",
+      order_id: order.id,
+
+      handler: async function (response) {
+
+        try {
+
+          await fetch(`${BACKEND}/api/payment/verify`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + localStorage.getItem("token")
+            },
+            body: JSON.stringify({
+              ...response,
+              amount: checkoutData.total
+            })
+          });
+
+         await fetch(`${BACKEND}/order/place`, {
+  method: "POST",
+  credentials: "include",   // ⭐ THIS IS THE FIX
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    items: checkoutData.items,
+    address: checkoutData.address
+  })
+});
+
+          // Smart cart handling (safe for both direct & full cart checkout)
+
+if (sessionStorage.getItem("directOrders")) {
+
+  for (let item of checkoutData.items) {
+
+    if (item._id) {
+      await fetch(`${BACKEND}/cart/remove/${item._id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+    }
+
+  }
+
+} else {
+
+ // Remove only ordered items from cart
+for (let item of checkoutData.items) {
+
+  if (item._id) {
+    await fetch(`${BACKEND}/cart/remove/${item._id}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
+  }
+
+}
+}
+          sessionStorage.removeItem("directOrders");
+
+          alert("Order Placed Successfully!");
+          window.location.href = "success.html";
+
+        } catch (err) {
+          console.error(err);
+          alert("Something went wrong");
+        }
+
+      },
+
+      theme: { color: "#2e7d32" }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch (err) {
+    console.error(err);
+    alert("Payment failed. Try again.");
+  }
+
+});
+
+/* ================= NAV ================= */
+
 function changeAddress() {
-  window.location.href = "profile.html";
+  window.location.href = "/profile.html";
+}
+
+function goToShop() {
+  window.location.href = "product.html";
 }
 
 </script>
