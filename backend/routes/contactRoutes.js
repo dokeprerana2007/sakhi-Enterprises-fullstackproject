@@ -1,13 +1,20 @@
 import express from "express";
 import { saveContact, getAllContacts } from "../controllers/contactController.js";
-import adminAuth from "../middleware/adminAuthMiddleware.js";
+import Contact from "../models/Contact.js";
 
 const router = express.Router();
 
-// POST contact
 router.post("/contact", saveContact);
 
-// GET all contacts (admin)
-router.get("/admin/contact", adminAuth, getAllContacts);
+router.get("/contact", getAllContacts);
+
+router.delete("/contact/:id", async (req, res) => { 
+  try {
+    await Contact.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Delete failed" });
+  }
+});
 
 export default router;

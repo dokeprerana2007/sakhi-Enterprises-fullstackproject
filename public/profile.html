@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile - Sakhi Enterprises</title>
 
   <style>
@@ -36,7 +35,7 @@
       color: white;
       padding: 30px 20px;
       float: left;
-      min-height: 500px;
+      min-height: 800px;
     }
 
     .sidebar h2 {
@@ -82,7 +81,6 @@
       font-size: 36px;
       font-weight: bold;
       margin-right: 20px;
-      flex-shrink: 0;
     }
 
     .profile-header h3 {
@@ -113,99 +111,26 @@
       border: 1px solid #bcdac7;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 768px) {
       .sidebar {
         width: 100%;
         float: none;
-        padding: 20px;
-        min-height: auto;
       }
 
       .profile-section {
         margin-left: 0;
-        padding: 30px 20px;
       }
 
       .info-grid {
         grid-template-columns: 1fr;
-        gap: 15px;
       }
     }
-
-    @media (max-width: 768px) {
-      .profile-header {
-        flex-direction: column;
-        text-align: center;
-        align-items: center;
-      }
-
-      .avatar {
-        margin-right: 0;
-        margin-bottom: 15px;
-      }
-
-      .profile-section {
-        padding: 20px;
-      }
-
-      .info-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .info-item p {
-        padding: 8px;
-        font-size: 14px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 0;
-      }
-
-      .container {
-        border-radius: 0;
-      }
-
-      .sidebar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 15px;
-      }
-
-      .sidebar h2 {
-        flex-basis: 100%;
-        margin-bottom: 10px;
-      }
-
-      .sidebar a {
-        flex: 1;
-        min-width: calc(50% - 5px);
-        padding: 8px 10px;
-        font-size: 14px;
-        margin: 0;
-      }
-
-      .profile-section {
-        padding: 15px;
-      }
-
-      .profile-header {
-        margin-bottom: 20px;
-      }
-
-      .avatar {
-        width: 70px;
-        height: 70px;
-        font-size: 28px;
-      }
-
-      .profile-header h3 {
-        font-size: 18px;
-      }
-    }
+    .error {
+  color: red;
+  font-size: 12px;
+  margin-top: -5px;
+  margin-bottom: 5px;
+}
   </style>
 </head>
 
@@ -236,9 +161,7 @@
 
 <script>
 
-const BACKEND = window.location.origin;
-
-fetch(`${BACKEND}/api/profile/profiledata`, { credentials: "include" })
+fetch('/api/profile/profiledata', { credentials: "include" })
 
   .then(res => {
     if (!res.ok) throw new Error("Unauthorized");
@@ -247,7 +170,6 @@ fetch(`${BACKEND}/api/profile/profiledata`, { credentials: "include" })
 
   .then(data => {
 
-    // Save address globally
     window.profileAddress = data.address || null;
 
     const avatarLetter = (data.username || '?')[0].toUpperCase();
@@ -255,7 +177,6 @@ fetch(`${BACKEND}/api/profile/profiledata`, { credentials: "include" })
     document.getElementById('user-name').textContent = data.username;
 
 
-    // Check real address
     const hasAddress =
       data.address &&
       data.address.fullName &&
@@ -335,44 +256,49 @@ fetch(`${BACKEND}/api/profile/profiledata`, { credentials: "include" })
 
       ${addressSection}
 
-      <div id="address-form"
-           style="display:none; grid-column:1/-1; margin-top:20px;">
+     <div id="address-form"
+     style="display:none; grid-column:1/-1; margin-top:20px;">
 
-        <h4 style="color:#0b6b33; margin-bottom:10px;">
-          ${hasAddress ? "Update Address" : "Add New Address"}
-        </h4>
+  <h4 style="color:#0b6b33; margin-bottom:10px;">
+    ${hasAddress ? "Update Address" : "Add New Address"}
+  </h4>
 
-        <input id="new-name" placeholder="Full Name"
-               style="margin:5px 0;padding:8px;width:100%">
+  <input id="new-name" placeholder="Full Name"
+         style="margin:5px 0;padding:8px;width:100%">
+  <div class="error" id="nameError"></div>
 
-        <input id="new-address" placeholder="Street Address"
-               style="margin:5px 0;padding:8px;width:100%">
+  <input id="new-address" placeholder="Street Address"
+         style="margin:5px 0;padding:8px;width:100%">
+  <div class="error" id="streetError"></div>
 
-        <input id="new-city" placeholder="City"
-               style="margin:5px 0;padding:8px;width:100%">
+  <input id="new-city" placeholder="City"
+         style="margin:5px 0;padding:8px;width:100%">
+  <div class="error" id="cityError"></div>
 
-        <input id="new-state" placeholder="State"
-               style="margin:5px 0;padding:8px;width:100%">
+  <input id="new-state" placeholder="State"
+         style="margin:5px 0;padding:8px;width:100%">
+  <div class="error" id="stateError"></div>
 
-        <input id="new-pincode" placeholder="Postal Code"
-               style="margin:5px 0;padding:8px;width:100%">
+  <input id="new-pincode" placeholder="Postal Code"
+         style="margin:5px 0;padding:8px;width:100%">
+  <div class="error" id="pincodeError"></div>
 
-        <input id="new-country" placeholder="Country"
-               style="margin:5px 0;padding:8px;width:100%">
+  <input id="new-country" placeholder="Country"
+         style="margin:5px 0;padding:8px;width:100%">
+  <div class="error" id="countryError"></div>
 
+  <button onclick="saveAddress()"
+    style="margin-top:10px;
+           padding:10px 16px;
+           background:#2e7d32;
+           color:white;
+           border:none;
+           border-radius:6px;
+           cursor:pointer;">
+    Save Address
+  </button>
 
-        <button onclick="saveAddress()"
-          style="margin-top:10px;
-                 padding:10px 16px;
-                 background:#2e7d32;
-                 color:white;
-                 border:none;
-                 border-radius:6px;
-                 cursor:pointer;">
-          Save Address
-        </button>
-
-      </div>
+</div>
     `;
 
   })
@@ -420,6 +346,9 @@ function showAddressForm(btn) {
 // Save address
 async function saveAddress() {
 
+  // Clear old errors
+  document.querySelectorAll(".error").forEach(e => e.innerText = "");
+
   const fullName = document.getElementById("new-name").value.trim();
   const street = document.getElementById("new-address").value.trim();
   const city = document.getElementById("new-city").value.trim();
@@ -427,24 +356,59 @@ async function saveAddress() {
   const pincode = document.getElementById("new-pincode").value.trim();
   const country = document.getElementById("new-country").value.trim();
 
+  let valid = true;
 
-  if (!fullName || !street || !city || !state || !pincode || !country) {
-    alert("Please fill all fields");
-    return;
+  //  Full Name
+  const nameRegex = /^[A-Za-z ]{2,}$/;
+  if (!nameRegex.test(fullName)) {
+    document.getElementById("nameError").innerText =
+      "Enter valid name (only letters)";
+    valid = false;
   }
 
+  //  Street
+  if (street.length < 5) {
+    document.getElementById("streetError").innerText =
+      "Street must be at least 5 characters";
+    valid = false;
+  }
+
+  // City
+  if (!/^[A-Za-z ]{2,}$/.test(city)) {
+    document.getElementById("cityError").innerText =
+      "Enter valid city name";
+    valid = false;
+  }
+
+  // State
+  if (!/^[A-Za-z ]{2,}$/.test(state)) {
+    document.getElementById("stateError").innerText =
+      "Enter valid state name";
+    valid = false;
+  }
+
+  // Pincode 
+  if (!/^\d{6}$/.test(pincode)) {
+    document.getElementById("pincodeError").innerText =
+      "Enter valid 6-digit pincode";
+    valid = false;
+  }
+
+  // Country
+  if (!/^[A-Za-z ]{2,}$/.test(country)) {
+    document.getElementById("countryError").innerText =
+      "Enter valid country name";
+    valid = false;
+  }
+
+  if (!valid) return;
 
   try {
 
-    const BACKEND = window.location.origin;
-    const res = await fetch(`${BACKEND}/api/profile/update-address`, {
-
+    const res = await fetch("/api/profile/update-address", {
       method: "PUT",
-
       headers: { "Content-Type": "application/json" },
-
       credentials: "include",
-
       body: JSON.stringify({
         fullName,
         street,
@@ -453,30 +417,22 @@ async function saveAddress() {
         pincode,
         country
       })
-
     });
 
-
     const data = await res.json();
-
 
     if (!res.ok) {
       alert(data.message || "Failed to save address");
       return;
     }
 
-
     alert("Address Updated Successfully");
     location.reload();
 
-
   } catch (err) {
-
     console.error(err);
     alert("Server error");
-
   }
-
 }
 
 </script>
